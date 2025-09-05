@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 # Import your models and business logic modules
 from models.employer import Employer
 from models.worker import Worker
-
 from bot_logic.employer_flow import save_employer
 from bot_logic.worker_flow import (
     router as worker_router,
@@ -34,11 +35,9 @@ app.add_middleware(
 app.include_router(admin_router)
 app.include_router(worker_router)
 
-
 @app.get("/api", tags=["Root"])
 def root():
     return {"message": "Welcome to KaamKhoj Bot!"}
-
 
 @app.post("/api/employer", tags=["Employer"])
 def post_job(employer: Employer):
@@ -52,7 +51,6 @@ def post_job(employer: Employer):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.get("/api/workers", tags=["Worker"])
 def get_workers():
     try:
@@ -64,7 +62,6 @@ def get_workers():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/api/match", tags=["Matching"])
 def match_workers(skill: str, location: str):
@@ -78,7 +75,6 @@ def match_workers(skill: str, location: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.put("/api/worker/{worker_id}", tags=["Worker"])
 def update_worker(worker_id: str, update_data: dict):
     try:
@@ -90,3 +86,15 @@ def update_worker(worker_id: str, update_data: dict):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Path to React build index.html
+INDEX_FILE_PATH = os.path.join(os.path.dirname(__file__), "dist", "index.html")
+
+# Catch-all route for SPA frontend, to serve index.html for all non-API GET requests
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    if full_path.startswith("api"):
+        # Return 404 for unknown API endpoints
+        raise HTTPException(status_code=404, detail="API endpoint not found")
+    # Otherwise serve React app entrypoint
+    return FileResponse(INDEX_FILE_PATH)
