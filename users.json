@@ -1,0 +1,14 @@
+[
+  {
+    "localId": "worker001",
+    "email": "worker001@kaamkhoj.com",
+    "passwordHash": "k3jzFBdtsgGg5wxzA1vW6XjMfUCsZHcbkCEKJYi0dfU=",
+    "emailVerified": true
+  },
+  {
+    "localId": "employer001",
+    "email": "employer001@kaamkhoj.com",
+    "passwordHash": "lG7GZGLXLqvbyd3HXTD74tGzPj25PMaRr80dZ1Rk1to=",
+    "emailVerified": true
+  }
+]
