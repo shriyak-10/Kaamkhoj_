@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # Import your models and business logic modules
 from models.employer import Employer
@@ -14,13 +15,16 @@ from bot_logic.worker_flow import (
 )
 from bot_logic.admin_flow import router as admin_router
 
-# Create the FastAPI app! THIS MUST BE AT TOP LEVEL!
+# Create the FastAPI app
 app = FastAPI(title="KaamKhoj Bot API", version="1.1")
 
-# Set up CORS so React frontend can call API
+# Serve frontend build (dist folder) at root
+app.mount("/", StaticFiles(directory="dist", html=True), name="static")
+
+# Set up CORS so React/Vite frontend can call API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=["*"],  # Allow all in production, or restrict to your domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,11 +34,13 @@ app.add_middleware(
 app.include_router(admin_router)
 app.include_router(worker_router)
 
-@app.get("/", tags=["Root"])
+
+@app.get("/api", tags=["Root"])
 def root():
     return {"message": "Welcome to KaamKhoj Bot!"}
 
-@app.post("/employer", tags=["Employer"])
+
+@app.post("/api/employer", tags=["Employer"])
 def post_job(employer: Employer):
     try:
         result = save_employer(employer.dict())
@@ -46,7 +52,8 @@ def post_job(employer: Employer):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/workers", tags=["Worker"])
+
+@app.get("/api/workers", tags=["Worker"])
 def get_workers():
     try:
         result = get_all_workers()
@@ -58,7 +65,8 @@ def get_workers():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/match", tags=["Matching"])
+
+@app.get("/api/match", tags=["Matching"])
 def match_workers(skill: str, location: str):
     try:
         result = find_workers(skill, location)
@@ -70,7 +78,8 @@ def match_workers(skill: str, location: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.put("/worker/{worker_id}", tags=["Worker"])
+
+@app.put("/api/worker/{worker_id}", tags=["Worker"])
 def update_worker(worker_id: str, update_data: dict):
     try:
         result = update_worker_by_id(worker_id, update_data)
