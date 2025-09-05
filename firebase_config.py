@@ -1,17 +1,24 @@
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
-from dotenv import load_dotenv
-import os
+import os, json
 
-load_dotenv()
+# Get Firebase credentials from Railway variable
+service_account_info = os.getenv("GOOGLE_CREDENTIALS")
 
-SERVICE_ACCOUNT_PATH = os.getenv("FIREBASE_CREDENTIALS", "serviceAccountKey.json")
+if not service_account_info:
+    raise ValueError("GOOGLE_CREDENTIALS environment variable not set on Railway")
+
+# Parse the JSON string from the env variable
+service_account_dict = json.loads(service_account_info)
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(SERVICE_ACCOUNT_PATH)
+    cred = credentials.Certificate(service_account_dict)
     firebase_admin.initialize_app(cred, {
-        'storageBucket': 'kaamkhoj-67bfe.appspot.com'  # Add your Firebase Storage bucket here
+        'storageBucket': 'kaamkhoj-67bfe.appspot.com'
     })
 
+# Firestore client
 db = firestore.client()
-bucket = storage.bucket()  # For file uploads
+
+# Storage bucket client
+bucket = storage.bucket()
